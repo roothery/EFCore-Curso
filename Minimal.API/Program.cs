@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http.Json;
 using Microsoft.EntityFrameworkCore;
 using Minimal.API.DbContexts;
 using Minimal.API.Entities;
+using Minimal.API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,6 +40,62 @@ app.MapGet("/diretores", (Context context) =>
 })
 .WithOpenApi();
 
+app.MapGet("/diretores/{id}", (
+    int id,
+    Context context) =>
+{
+    return context.Diretores
+        .Where(diretor => diretor.Id == id)
+        .Include(diretor => diretor.Filmes)
+        .ToList();
+})
+.WithOpenApi();
+
+app.MapGet("/filmes", (Context context) =>
+{
+    return context.Filmes
+        .Include(filme => filme.Diretor)
+        .OrderByDescending(filme => filme.Ano)
+        .ThenBy(filme => filme.Titulo)
+        .ToList();
+})
+.WithOpenApi();
+
+app.MapGet("/filmes/{id}", (
+    int id,
+    Context context) =>
+{
+    return context.Filmes
+        .Where(filme => filme.Id == id)
+        .Include(filme => filme.Diretor)
+        .ToList();
+})
+.WithOpenApi();
+
+app.MapGet("/filmesEF/byName/{titulo}", (
+    string titulo,
+    Context context) =>
+{
+    return context.Filmes
+        .Where(filme => 
+            EF.Functions.Like(filme.Titulo, $"%{titulo}%")
+        )
+        .Include(filme => filme.Diretor)
+        .ToList();
+})
+.WithOpenApi();
+
+app.MapGet("/filmesLinq/byName/{titulo}", (
+    string titulo,
+    Context context) =>
+{
+    return context.Filmes
+        .Where(filme => filme.Titulo.Contains(titulo))
+        .Include(filme => filme.Diretor)
+        .ToList();
+})
+.WithOpenApi();
+
 app.MapPost("/diretores", (Context context, Diretor diretor) =>
 {
     context.Diretores.Add(diretor);
@@ -61,6 +118,49 @@ app.MapPut("/diretores/{diretorId}", (Context context, int diretorId, Diretor no
             }
         }
         context.SaveChanges();
+    }
+})
+.WithOpenApi();
+
+app.MapDelete("/filmes/{filmeId}", (Context context, int filmeId) =>
+{
+    context.Filmes
+        .Where(filme => filme.Id == filmeId)
+        .ExecuteDelete<Filme>();
+})
+.WithOpenApi();
+
+app.MapPatch("/filmesUpdate", (Context context, FilmeUpdate filmeUpdate) =>
+{
+    var filme = context.Filmes.Find(filmeUpdate.Id);
+
+    if (filme == null) {
+        return Results.NotFound("Filme não encontrado!");
+    }
+
+    filme.Titulo = filmeUpdate.Titulo;
+    filme.Ano = filmeUpdate.Ano;
+
+    context.Filmes.Update(filme);
+    context.SaveChanges();
+
+    return Results.Ok($"Filme (ID: {filmeUpdate.Id}) atualizado com sucesso!");
+})
+.WithOpenApi();
+
+app.MapPatch("/filmesExecuteUpdate", (Context context, FilmeUpdate filmeUpdate) =>
+{
+    var result = context.Filmes
+        .Where(filme => filme.Id == filmeUpdate.Id)
+        .ExecuteUpdate(setter => setter
+            .SetProperty(f => f.Titulo, filmeUpdate.Titulo)
+            .SetProperty(f => f.Ano, filmeUpdate.Ano)
+        );
+    
+    if (result > 0) {
+        return Results.Ok($"Total de linha(s) afetada(s): {result}");
+    } else {
+        return Results.NoContent();
     }
 })
 .WithOpenApi();
