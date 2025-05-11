@@ -1,6 +1,4 @@
-using System;
-
-namespace Minimal.API.Entities;
+namespace Minimal.Domain.Entities;
 
 public class Filme
 {

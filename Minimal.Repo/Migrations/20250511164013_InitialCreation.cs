@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace Minimal.API.Migrations
+namespace Minimal.Repo.Migrations
 {
     /// <inheritdoc />
-    public partial class CriacaoDbCursoMinimalApi : Migration
+    public partial class InitialCreation : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -31,7 +31,7 @@ namespace Minimal.API.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Titulo = table.Column<string>(type: "TEXT", nullable: false),
                     Ano = table.Column<int>(type: "INTEGER", nullable: false),
-                    DiretorId = table.Column<int>(type: "INTEGER", nullable: true)
+                    DiretorId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -40,7 +40,8 @@ namespace Minimal.API.Migrations
                         name: "FK_Filmes_Diretores_DiretorId",
                         column: x => x.DiretorId,
                         principalTable: "Diretores",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
