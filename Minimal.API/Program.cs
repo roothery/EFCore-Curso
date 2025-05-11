@@ -9,7 +9,7 @@ using Minimal.Repo.Contratos;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<Context>(
-    options => options.UseSqlite(builder.Configuration["ConnectionStrings:FuscaFilmesStr"])
+    options => options.UseSqlite(builder.Configuration["ConnectionStrings:MinimalApiStr"])
                       .LogTo(Console.WriteLine, LogLevel.Information)
 );
 
@@ -25,6 +25,13 @@ builder.Services.Configure<JsonOptions>(options =>
 });
 
 var app = builder.Build();
+
+// Garante que o banco de dados seja criado, se ainda não existir
+// using (var scope = app.Services.CreateScope())
+// {
+//     var db = scope.ServiceProvider.GetRequiredService<Context>();
+//     db.Database.EnsureCreated();
+// }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
