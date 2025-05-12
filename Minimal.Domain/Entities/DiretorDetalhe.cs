@@ -6,6 +6,7 @@ public class DiretorDetalhe
     public string Biografia { get; set; } = string.Empty;
     public DateTime DataNascimento { get; set; }
 
+    public DateTime DataCriacao { get; set; }
     public int DiretorId { get; set; }
     public Diretor Diretor { get; set; } = null!;
 }
